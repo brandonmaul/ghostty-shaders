@@ -39,14 +39,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
   vec2 step = vec2(1.414) / iResolution.xy;
 
+  vec4 bloom = vec4(0.0);
   for (int i = 0; i < 24; i++) {
     vec3 s = samples[i];
     vec4 c = texture(iChannel0, uv + s.xy * step);
     float l = lum(c);
     if (l > 0.2) {
-      color += l * s.z * c * 0.2;
+      bloom += l * s.z * c * 0.2;
     }
   }
+
+  // cap bloom so it can't pile up inside solid bright blocks (selections etc.)
+  // isolated glyphs accumulate little bloom and are unaffected; filled blocks accumulate a lot
+  color += clamp(bloom, 0.0, 0.25);
 
   fragColor = color;
 }
